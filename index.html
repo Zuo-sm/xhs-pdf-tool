@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>小红书帖子 PDF 生成器</title>
+  <style>
+    :root {
+      --bg: #f5f2ec;
+      --panel: #fffefa;
+      --ink: #202428;
+      --muted: #6d747c;
+      --line: #ddd5c8;
+      --accent: #c4334a;
+      --accent-dark: #982537;
+      --ok: #157a62;
+      --soft: #ede6da;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+    }
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(25px, 4vw, 38px);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 760px;
+    }
+    .status-pill {
+      flex: 0 0 auto;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-size: 13px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 14px 38px rgba(32, 36, 40, .08);
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    textarea, input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+    }
+    textarea {
+      min-height: 220px;
+      resize: vertical;
+      padding: 12px;
+      line-height: 1.55;
+    }
+    input {
+      padding: 10px 11px;
+    }
+    textarea:focus, input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(196, 51, 74, .12);
+    }
+    .settings {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-top: 28px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .check input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    button, a.button {
+      appearance: none;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      padding: 11px 15px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+    }
+    button:hover, a.button:hover { background: var(--accent-dark); }
+    button.secondary {
+      background: var(--soft);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    button.secondary:hover { background: #e4dccf; }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .62;
+    }
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+      margin: 12px 0 0;
+    }
+    .log {
+      min-height: 315px;
+      max-height: 520px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #171b1f;
+      color: #e7ecef;
+      padding: 12px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+    .result {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .file {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: white;
+    }
+    .file span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .file a {
+      color: var(--ok);
+      font-weight: 700;
+      text-decoration: none;
+      flex: 0 0 auto;
+    }
+    @media (max-width: 860px) {
+      header { display: block; }
+      .status-pill { display: inline-block; margin-top: 14px; }
+      .grid { grid-template-columns: 1fr; }
+      .settings { grid-template-columns: 1fr; }
+      .check { padding-top: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <h1>小红书帖子 PDF 生成器</h1>
+        <p class="lead">粘贴帖子链接，云端后台会抓取可见正文、图片和评论区，按点赞数取前 10 条并生成 PDF。公开帖子可直接生成，需要登录时可填写 Cookie。</p>
+      </div>
+      <div class="status-pill" id="serverStatus">检查后台中...</div>
+    </header>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>链接</h2>
+        <label for="urls">每行一个小红书帖子链接</label>
+        <textarea id="urls" placeholder="https://www.xiaohongshu.com/explore/...
+https://www.xiaohongshu.com/discovery/item/..."></textarea>
+
+        <div class="settings">
+          <div>
+            <label for="comments">评论数量</label>
+            <input id="comments" type="number" min="0" max="50" value="10" />
+          </div>
+          <div>
+            <label for="scrollRounds">滚动次数</label>
+            <input id="scrollRounds" type="number" min="1" max="40" value="10" />
+          </div>
+          <label class="check">
+            <input id="showBrowser" type="checkbox" checked />
+            显示浏览器
+          </label>
+        </div>
+
+        <div style="margin-top:12px">
+          <label for="cookieHeader">小红书 Cookie，可选</label>
+          <textarea id="cookieHeader" style="min-height:82px" placeholder="只在帖子需要登录、评论抓不到时填写。格式类似：a=1; b=2; c=3"></textarea>
+        </div>
+
+        <div class="actions">
+          <button id="loginBtn" type="button" class="secondary">先登录小红书</button>
+          <button id="runBtn" type="button">生成 PDF</button>
+          <button id="clearBtn" type="button" class="secondary">清空日志</button>
+        </div>
+
+        <p class="note">这个工具只保存当前云端能正常访问的内容，不绕过登录、权限或平台限制。部署到云服务器后，“先登录小红书”一般只适合本地使用；云端需要登录时请填 Cookie。</p>
+      </div>
+
+      <div class="panel">
+        <h2>进度</h2>
+        <div class="log" id="log">等待操作。</div>
+        <div class="result" id="result"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const api = location.origin;
+    let busy = false;
+
+    function setBusy(value) {
+      busy = value;
+      $("runBtn").disabled = value;
+      $("loginBtn").disabled = value;
+      $("runBtn").textContent = value ? "处理中..." : "生成 PDF";
+    }
+
+    function log(text) {
+      const box = $("log");
+      if (box.textContent === "等待操作。") box.textContent = "";
+      box.textContent += text + "\n";
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function checkServer() {
+      try {
+        const res = await fetch(`${api}/api/health`);
+        const data = await res.json();
+        $("serverStatus").textContent = data.ok ? "后台已连接" : "后台异常";
+      } catch {
+        $("serverStatus").textContent = "后台未启动";
+      }
+    }
+
+    async function callApi(path, body) {
+      const res = await fetch(`${api}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "请求失败");
+      }
+      return data;
+    }
+
+    $("loginBtn").addEventListener("click", async () => {
+      if (busy) return;
+      setBusy(true);
+      $("result").innerHTML = "";
+      log("打开登录浏览器。登录完成后回到命令行窗口按回车。");
+      try {
+        const data = await callApi("/api/login", {
+          showBrowser: $("showBrowser").checked
+        });
+        data.logs.forEach(log);
+      } catch (err) {
+        log("失败: " + err.message);
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    $("runBtn").addEventListener("click", async () => {
+      if (busy) return;
+      const urls = $("urls").value.split(/\n+/).map((x) => x.trim()).filter(Boolean);
+      if (!urls.length) {
+        log("请先粘贴至少一个帖子链接。");
+        return;
+      }
+      setBusy(true);
+      $("result").innerHTML = "";
+      log(`开始处理 ${urls.length} 个链接。`);
+      try {
+        const data = await callApi("/api/generate", {
+          urls,
+          comments: Number($("comments").value || 10),
+          scrollRounds: Number($("scrollRounds").value || 10),
+          showBrowser: $("showBrowser").checked,
+          cookieHeader: $("cookieHeader").value.trim()
+        });
+        data.logs.forEach(log);
+        $("result").innerHTML = data.files.map((file) => `
+          <div class="file">
+            <span title="${file.name}">${file.name}</span>
+            <a href="${file.url}" target="_blank" rel="noreferrer">打开 PDF</a>
+          </div>
+        `).join("");
+      } catch (err) {
+        log("失败: " + err.message);
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    $("clearBtn").addEventListener("click", () => {
+      $("log").textContent = "等待操作。";
+      $("result").innerHTML = "";
+    });
+
+    checkServer();
+  </script>
+</body>
+</html>

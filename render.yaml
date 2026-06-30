@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: xhs-post-pdf
+    env: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: OPEN_BROWSER
+        value: "0"
