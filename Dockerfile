@@ -5,9 +5,10 @@ ENV HOST=0.0.0.0
 ENV OPEN_BROWSER=0
 WORKDIR /app
 COPY requirements.txt /app/requirements.txt
-RUN apt-get update && apt-get install -y fonts-unifont && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir -r /app/requirements.txt \
-    && python -m playwright install --with-deps chromium
+RUN apt-get update && apt-get install -y fonts-unifont \
+    && pip install --no-cache-dir -r /app/requirements.txt \
+    && python -m playwright install chromium \
+    && rm -rf /var/lib/apt/lists/*
 COPY index.html server.py /app/
 EXPOSE 8765
 CMD ["python", "server.py"]
